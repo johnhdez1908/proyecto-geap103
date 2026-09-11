@@ -1,8 +1,9 @@
 html<!DOCTYPE html>
-<!-- translate="no" es obligatorio para que Google Chrome no altere el codigo -->
-<html lang="en" translate="no">
+<!-- translate="no" es una regla estricta para que Chrome no rompa los botones -->
+<html lang="en" translate="no" class="notranslate">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEAP-103-OLA: Analizador Gramatical por Colores</title>
     <style>
@@ -14,31 +15,25 @@ html<!DOCTYPE html>
         button { background-color: #ffc72c; color: #002244; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 5px; }
         button:hover { background-color: #e0ae26; }
         
-        /* Contenedor de lectura */
         .text-display { font-size: 24px; line-height: 2; margin-top: 20px; text-align: left; padding: 15px; background: #fafafa; border-radius: 4px; border-left: 4px solid #002244; }
-        
-        /* CLASES DE COLORES FIJOS PARA CADA CATEGORÍA GRAMATICAL */
         .word { display: inline-block; margin-right: 8px; cursor: pointer; border-radius: 4px; padding: 2px 6px; font-weight: 500; color: white; transition: 0.2s; border: 2px solid transparent; }
         
-        .articulo { background-color: #2196f3 !important; }  /* Azul */
-        .adjetivo { background-color: #4caf50 !important; }  /* Verde */
-        .sustantivo { background-color: #ff9800 !important; } /* Naranja */
-        .verbo { background-color: #f44336 !important; }      /* Rojo */
-        .desconocido { background-color: #9e9e9e !important; } /* Gris por defecto */
+        .articulo { background-color: #2196f3 !important; }  
+        .adjetivo { background-color: #4caf50 !important; }  
+        .sustantivo { background-color: #ff9800 !important; } 
+        .verbo { background-color: #f44336 !important; }      
+        .desconocido { background-color: #9e9e9e !important; } 
 
-        /* Efecto visual cuando la palabra está SONANDO en el audio */
         .highlight { 
             border: 2px solid #000000 !important;
             box-shadow: 0px 0px 8px rgba(0,0,0,0.5);
             transform: scale(1.1);
         }
         
-        /* Leyenda de colores para el profesor */
         .legend { display: flex; justify-content: space-around; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 
-        /* Cuadros de traducción e información */
         .sentence-translation { margin-top: 15px; padding: 12px; background-color: #e3f2fd; border-left: 4px solid #2196f3; text-align: left; border-radius: 4px; font-size: 16px; display: none; }
         .popover { margin-top: 20px; padding: 15px; border: 2px dashed #ffc72c; display: none; background: #fffde7; border-radius: 5px; text-align: left; }
         .popover img { margin-top: 10px; border-radius: 4px; max-width: 150px; display: block; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); }
@@ -47,7 +42,7 @@ html<!DOCTYPE html>
 </head>
 <body>
 
-<div class="container">
+<div class="container" translate="no" class="notranslate">
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
@@ -59,7 +54,6 @@ html<!DOCTYPE html>
     <button onclick="speakText()">2. Escuchar y Seguir</button>
     <button onclick="pauseSpeech()">Pausar</button>
 
-    <!-- Leyenda de colores interactiva para la defensa del proyecto -->
     <div class="legend">
         <div class="legend-item"><span class="dot" style="background:#2196f3;"></span> Artículo</div>
         <div class="legend-item"><span class="dot" style="background:#4caf50;"></span> Adjetivo</div>
@@ -78,43 +72,12 @@ html<!DOCTYPE html>
     let utterance;
     let wordsArray = [];
 
-    // Diccionario con las clasificaciones y estilos de color vinculados
     const localDictionary = {
-        "the": { 
-            trans: "El / La / Los / Las", 
-            type: "Artículo", 
-            className: "articulo",
-            desc: "Acompaña al sustantivo para indicar su género y número.",
-            img: "https://unsplash.com" 
-        },
-        "beautiful": { 
-            trans: "Hermoso / Bella", 
-            type: "Adjetivo", 
-            className: "adjetivo",
-            desc: "Califica o da una cualidad al sustantivo.",
-            img: "https://unsplash.com" 
-        },
-        "garden": { 
-            trans: "Jardín", 
-            type: "Sustantivo (o nombre)", 
-            className: "sustantivo",
-            desc: "Nombra a personas, animales, cosas, lugares o ideas.",
-            img: "https://unsplash.com" 
-        },
-        "has": { 
-            trans: "Tiene (del verbo tener)", 
-            type: "Verbo", 
-            className: "verbo",
-            desc: "Expresa la acción, el estado o el proceso que realiza el sujeto.",
-            img: "https://unsplash.com" 
-        },
-        "flowers": { 
-            trans: "Flores", 
-            type: "Sustantivo (o nombre)", 
-            className: "sustantivo",
-            desc: "Nombra a personas, animales, cosas, lugares o ideas.",
-            img: "https://unsplash.com" 
-        }
+        "the": { trans: "El / La / Los / Las", type: "Artículo", className: "articulo", desc: "Acompaña al sustantivo para indicar su género y número.", img: "https://unsplash.com" },
+        "beautiful": { trans: "Hermoso / Bella", type: "Adjetivo", className: "adjetivo", desc: "Califica o da una cualidad al sustantivo.", img: "https://unsplash.com" },
+        "garden": { trans: "Jardín", type: "Sustantivo (o nombre)", className: "sustantivo", desc: "Nombra a personas, animales, cosas, lugares o ideas.", img: "https://unsplash.com" },
+        "has": { trans: "Tiene (del verbo tener)", type: "Verbo", className: "verbo", desc: "Expresa la acción, el estado o el proceso que realiza el sujeto.", img: "https://unsplash.com" },
+        "flowers": { trans: "Flores", type: "Sustantivo (o nombre)", className: "sustantivo", desc: "Nombra a personas, animales, cosas, lugares o ideas.", img: "https://unsplash.com" }
     };
 
     function prepareText() {
@@ -133,7 +96,6 @@ html<!DOCTYPE html>
             span.innerText = word;
             span.id = 'word-' + index;
             
-            // Buscar la palabra limpia en nuestro diccionario para asignarle su color permanente
             let clean = word.toLowerCase().replace(/[^a-z]/g, "");
             if (localDictionary[clean]) {
                 span.className = 'word ' + localDictionary[clean].className;
@@ -159,7 +121,6 @@ html<!DOCTYPE html>
         if (document.querySelectorAll('.word').length === 0) prepareText();
 
         synthesis.cancel(); 
-
         utterance = new SpeechSynthesisUtterance(rawText);
         utterance.lang = 'en-US'; 
 
@@ -185,6 +146,7 @@ html<!DOCTYPE html>
         if (synthesis.speaking && !synthesis.paused) synthesis.pause();
     }
 
+    // Al hacer clic, la aplicacion habla en ingles la palabra seleccionada
     function showWordDetails(word) {
         pauseSpeech();
         let cleanWord = word.toLowerCase().replace(/[^a-z]/g, "");
@@ -201,3 +163,18 @@ html<!DOCTYPE html>
                 <strong>📸 Ejemplo Gráfico:</strong>
                 <img src="${data.img}" alt="${cleanWord}">
             `;
+        } else {
+            popover.innerHTML = `
+                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
+                <em>(Haz clic en "The", "beautiful", "garden", "has" o "flowers").</em>
+            `;
+        }
+        
+        let wordUtterance = new SpeechSynthesisUtterance(cleanWord);
+        wordUtterance.lang = 'en-US';
+        synthesis.speak(wordUtterance);
+    }
+</script>
+
+</body>
+</html>
