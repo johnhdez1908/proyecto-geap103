@@ -1,23 +1,48 @@
 html<!DOCTYPE html>
+<!-- translate="no" es obligatorio para que Google Chrome no altere el codigo -->
 <html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAP-103-OLA: Language Prototype</title>
+    <title>GEAP-103-OLA: Analizador Gramatical por Colores</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f7f6; text-align: center; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
         h1 { color: #002244; font-size: 24px; }
         .subtitle { color: #555; font-size: 14px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 80px; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; resize: none; box-sizing: border-box; }
+        textarea { width: 100%; height: 60px; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; resize: none; box-sizing: border-box; }
         button { background-color: #ffc72c; color: #002244; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 5px; }
         button:hover { background-color: #e0ae26; }
-        .text-display { font-size: 22px; line-height: 1.6; margin-top: 20px; text-align: left; padding: 15px; background: #fafafa; border-radius: 4px; border-left: 4px solid #002244; min-height: 50px; }
-        .word { display: inline-block; margin-right: 6px; cursor: pointer; border-radius: 3px; padding: 2px 4px; }
-        .word:hover { background-color: #ffe082; }
-        .highlight { background-color: #ffeb3b; font-weight: bold; }
+        
+        /* Contenedor de lectura */
+        .text-display { font-size: 24px; line-height: 2; margin-top: 20px; text-align: left; padding: 15px; background: #fafafa; border-radius: 4px; border-left: 4px solid #002244; }
+        
+        /* CLASES DE COLORES FIJOS PARA CADA CATEGORÍA GRAMATICAL */
+        .word { display: inline-block; margin-right: 8px; cursor: pointer; border-radius: 4px; padding: 2px 6px; font-weight: 500; color: white; transition: 0.2s; border: 2px solid transparent; }
+        
+        .articulo { background-color: #2196f3 !important; }  /* Azul */
+        .adjetivo { background-color: #4caf50 !important; }  /* Verde */
+        .sustantivo { background-color: #ff9800 !important; } /* Naranja */
+        .verbo { background-color: #f44336 !important; }      /* Rojo */
+        .desconocido { background-color: #9e9e9e !important; } /* Gris por defecto */
+
+        /* Efecto visual cuando la palabra está SONANDO en el audio */
+        .highlight { 
+            border: 2px solid #000000 !important;
+            box-shadow: 0px 0px 8px rgba(0,0,0,0.5);
+            transform: scale(1.1);
+        }
+        
+        /* Leyenda de colores para el profesor */
+        .legend { display: flex; justify-content: space-around; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+        /* Cuadros de traducción e información */
+        .sentence-translation { margin-top: 15px; padding: 12px; background-color: #e3f2fd; border-left: 4px solid #2196f3; text-align: left; border-radius: 4px; font-size: 16px; display: none; }
         .popover { margin-top: 20px; padding: 15px; border: 2px dashed #ffc72c; display: none; background: #fffde7; border-radius: 5px; text-align: left; }
         .popover img { margin-top: 10px; border-radius: 4px; max-width: 150px; display: block; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); }
+        .grammar-tag { display: inline-block; background-color: #002244; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-top: 4px; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -26,7 +51,7 @@ html<!DOCTYPE html>
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
-    <p>Escribe tu frase en inglés:</p>
+    <p>Frase en inglés para el análisis por colores:</p>
     <textarea id="textInput">The beautiful garden has flowers</textarea>
     <br>
     
@@ -34,7 +59,17 @@ html<!DOCTYPE html>
     <button onclick="speakText()">2. Escuchar y Seguir</button>
     <button onclick="pauseSpeech()">Pausar</button>
 
+    <!-- Leyenda de colores interactiva para la defensa del proyecto -->
+    <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#2196f3;"></span> Artículo</div>
+        <div class="legend-item"><span class="dot" style="background:#4caf50;"></span> Adjetivo</div>
+        <div class="legend-item"><span class="dot" style="background:#ff9800;"></span> Sustantivo</div>
+        <div class="legend-item"><span class="dot" style="background:#f44336;"></span> Verbo</div>
+    </div>
+
     <div id="textDisplay" class="text-display">Presiona "1. Cargar Texto" para iniciar.</div>
+    
+    <div id="sentenceTranslation" class="sentence-translation"></div>
     <div id="popover" class="popover"></div>
 </div>
 
@@ -43,18 +78,50 @@ html<!DOCTYPE html>
     let utterance;
     let wordsArray = [];
 
-    // Ahora este diccionario SI incluye "the" y "has" para que no de error
+    // Diccionario con las clasificaciones y estilos de color vinculados
     const localDictionary = {
-        "the": { trans: "El / La / Los / Las", img: "https://unsplash.com" },
-        "beautiful": { trans: "Hermoso / Bella", img: "https://unsplash.com" },
-        "garden": { trans: "Jardín", img: "https://unsplash.com" },
-        "has": { trans: "Tiene (verbo tener)", img: "https://unsplash.com" },
-        "flowers": { trans: "Flores", img: "https://unsplash.com" }
+        "the": { 
+            trans: "El / La / Los / Las", 
+            type: "Artículo", 
+            className: "articulo",
+            desc: "Acompaña al sustantivo para indicar su género y número.",
+            img: "https://unsplash.com" 
+        },
+        "beautiful": { 
+            trans: "Hermoso / Bella", 
+            type: "Adjetivo", 
+            className: "adjetivo",
+            desc: "Califica o da una cualidad al sustantivo.",
+            img: "https://unsplash.com" 
+        },
+        "garden": { 
+            trans: "Jardín", 
+            type: "Sustantivo (o nombre)", 
+            className: "sustantivo",
+            desc: "Nombra a personas, animales, cosas, lugares o ideas.",
+            img: "https://unsplash.com" 
+        },
+        "has": { 
+            trans: "Tiene (del verbo tener)", 
+            type: "Verbo", 
+            className: "verbo",
+            desc: "Expresa la acción, el estado o el proceso que realiza el sujeto.",
+            img: "https://unsplash.com" 
+        },
+        "flowers": { 
+            trans: "Flores", 
+            type: "Sustantivo (o nombre)", 
+            className: "sustantivo",
+            desc: "Nombra a personas, animales, cosas, lugares o ideas.",
+            img: "https://unsplash.com" 
+        }
     };
 
     function prepareText() {
         const rawText = document.getElementById('textInput').value;
         const displayContainer = document.getElementById('textDisplay');
+        const sentenceBox = document.getElementById('sentenceTranslation');
+        
         document.getElementById('popover').style.display = 'none';
         displayContainer.innerHTML = '';
         
@@ -64,11 +131,22 @@ html<!DOCTYPE html>
         wordsArray.forEach((word, index) => {
             let span = document.createElement('span');
             span.innerText = word;
-            span.className = 'word';
             span.id = 'word-' + index;
+            
+            // Buscar la palabra limpia en nuestro diccionario para asignarle su color permanente
+            let clean = word.toLowerCase().replace(/[^a-z]/g, "");
+            if (localDictionary[clean]) {
+                span.className = 'word ' + localDictionary[clean].className;
+            } else {
+                span.className = 'word desconocido';
+            }
+            
             span.onclick = function() { showWordDetails(word); };
             displayContainer.appendChild(span);
         });
+
+        sentenceBox.style.display = 'block';
+        sentenceBox.innerHTML = `<strong>🔮 Traducción de la oración:</strong> El hermoso jardín tiene flores.`;
     }
 
     function speakText() {
@@ -114,24 +192,12 @@ html<!DOCTYPE html>
         popover.style.display = 'block';
         
         if (localDictionary[cleanWord]) {
+            let data = localDictionary[cleanWord];
             popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
-                <strong>📝 Traducción al Español:</strong> <span style="color:#002244; font-weight:bold;">${localDictionary[cleanWord].trans}</span> <br>
-                <strong>📸 Ejemplo Gráfico:</strong> <br>
-                <img src="${localDictionary[cleanWord].img}" alt="${cleanWord}">
+                <strong>📌 Palabra:</strong> ${word} <br>
+                <strong>📝 Traducción:</strong> <span style="color:#002244; font-weight:bold;">${data.trans}</span> <br>
+                <strong>🏷️ Categoría Gramatical:</strong> <span class="grammar-tag">${data.type}</span> <br>
+                <small style="color:#555; display:block; margin-bottom:5px;"><em>${data.desc}</em></small>
+                <strong>📸 Ejemplo Gráfico:</strong>
+                <img src="${data.img}" alt="${cleanWord}">
             `;
-        } else {
-            popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
-                <em>(Haz clic en una palabra válida de la frase).</em>
-            `;
-        }
-        
-        let wordUtterance = new SpeechSynthesisUtterance(cleanWord);
-        wordUtterance.lang = 'en-US';
-        synthesis.speak(wordUtterance);
-    }
-</script>
-
-</body>
-</html>
