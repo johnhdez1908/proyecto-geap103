@@ -1,9 +1,9 @@
 html<!DOCTYPE html>
-<html lang="es" translate="no">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAP-103-OLA: Proyecto Final</title>
+    <title>GEAP-103-OLA: Language Prototype</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f7f6; text-align: center; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
@@ -26,10 +26,8 @@ html<!DOCTYPE html>
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
-    <p>Escribe tu frase en inglés (ejemplo: <strong>sunny day</strong> o <strong>beautiful garden</strong>):</p>
-    
-    <!-- Dejamos cargado un ejemplo infalible para tu profesor -->
-    <textarea id="textInput">sunny day beautiful garden</textarea>
+    <p>Escribe tu frase en inglés:</p>
+    <textarea id="textInput">The beautiful garden has flowers</textarea>
     <br>
     
     <button onclick="prepareText()">1. Cargar Texto</button>
@@ -45,12 +43,13 @@ html<!DOCTYPE html>
     let utterance;
     let wordsArray = [];
 
-    // Base de datos de palabras guardada dentro del propio archivo (100% libre de errores de red)
+    // Ahora este diccionario SI incluye "the" y "has" para que no de error
     const localDictionary = {
-        "sunny": { trans: "Soleado", img: "https://unsplash.com" },
-        "day": { trans: "Día", img: "https://unsplash.com" },
+        "the": { trans: "El / La / Los / Las", img: "https://unsplash.com" },
         "beautiful": { trans: "Hermoso / Bella", img: "https://unsplash.com" },
-        "garden": { trans: "Jardín", img: "https://unsplash.com" }
+        "garden": { trans: "Jardín", img: "https://unsplash.com" },
+        "has": { trans: "Tiene (verbo tener)", img: "https://unsplash.com" },
+        "flowers": { trans: "Flores", img: "https://unsplash.com" }
     };
 
     function prepareText() {
@@ -81,7 +80,6 @@ html<!DOCTYPE html>
         if (!rawText.trim()) return;
         if (document.querySelectorAll('.word').length === 0) prepareText();
 
-        // Truco para activar el motor de audio de Chrome correctamente
         synthesis.cancel(); 
 
         utterance = new SpeechSynthesisUtterance(rawText);
@@ -102,7 +100,6 @@ html<!DOCTYPE html>
         utterance.onend = function() {
             document.querySelectorAll('.word').forEach(el => el.classList.remove('highlight'));
         };
-
         synthesis.speak(utterance);
     }
 
@@ -126,7 +123,7 @@ html<!DOCTYPE html>
         } else {
             popover.innerHTML = `
                 <strong>📌 Palabra seleccionada:</strong> ${word} <br>
-                <em>(Prototipo de examen. Haz clic en "sunny", "day", "beautiful" o "garden" para ver su traducción e imagen).</em>
+                <em>(Haz clic en una palabra válida de la frase).</em>
             `;
         }
         
