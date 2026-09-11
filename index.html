@@ -3,100 +3,22 @@ html<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAP-103-OLA: Proyecto Final GitHub</title>
+    <title>GEAP-103-OLA: Traductor Interactivo Pro</title>
     <style>
-        /* Estilos generales de la aplicación con colores institucionales */
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            background-color: #f4f7f6; 
-            text-align: center; 
-        }
-        .container { 
-            max-width: 600px; 
-            margin: auto; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.1); 
-        }
-        h1 { 
-            color: #002244; 
-            font-size: 24px;
-        }
-        .subtitle {
-            color: #555;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        textarea { 
-            width: 100%; 
-            height: 80px; 
-            padding: 10px; 
-            margin-bottom: 10px; 
-            border-radius: 4px; 
-            border: 1px solid #ccc; 
-            font-size: 16px; 
-            box-sizing: border-radius;
-            resize: none;
-        }
-        button { 
-            background-color: #ffc72c; /* Amarillo estilo Humber */
-            color: #002244;
-            border: none; 
-            padding: 10px 15px; 
-            font-size: 14px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            border-radius: 4px; 
-            margin: 5px; 
-            transition: 0.2s;
-        }
-        button:hover { 
-            background-color: #e0ae26; 
-        }
-        .text-display { 
-            font-size: 22px; 
-            line-height: 1.6; 
-            margin-top: 20px; 
-            text-align: left; 
-            padding: 15px; 
-            background: #fafafa; 
-            border-radius: 4px; 
-            border-left: 4px solid #002244;
-        }
-        .word { 
-            display: inline-block; 
-            margin-right: 6px; 
-            cursor: pointer; 
-            border-radius: 3px; 
-            padding: 2px 4px; 
-            transition: 0.1s;
-        }
-        .word:hover { 
-            background-color: #ffe082; 
-        }
-        .highlight { 
-            background-color: #ffeb3b; 
-            font-weight: bold; 
-            transform: scale(1.05);
-        }
-        /* Contenedor interactivo para la ayuda visual */
-        .popover { 
-            margin-top: 20px; 
-            padding: 15px; 
-            border: 2px dashed #ffc72c; 
-            display: none; 
-            background: #fffde7; 
-            border-radius: 5px; 
-            text-align: left; 
-        }
-        .popover img {
-            margin-top: 10px; 
-            border-radius: 4px; 
-            max-width: 150px;
-            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
-        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background-color: #f4f7f6; text-align: center; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 15px rgba(0,0,0,0.1); }
+        h1 { color: #002244; font-size: 24px; margin-bottom: 5px; }
+        .subtitle { color: #555; font-size: 14px; margin-bottom: 20px; font-weight: bold; }
+        textarea { width: 100%; height: 80px; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; resize: none; box-sizing: border-box; }
+        button { background-color: #ffc72c; color: #002244; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 5px; transition: 0.2s; }
+        button:hover { background-color: #e0ae26; }
+        .text-display { font-size: 22px; line-height: 1.6; margin-top: 20px; text-align: left; padding: 15px; background: #fafafa; border-radius: 4px; border-left: 4px solid #002244; min-height: 50px; }
+        .word { display: inline-block; margin-right: 6px; cursor: pointer; border-radius: 3px; padding: 2px 4px; transition: 0.1s; }
+        .word:hover { background-color: #ffe082; }
+        .highlight { background-color: #ffeb3b; font-weight: bold; }
+        .popover { margin-top: 20px; padding: 15px; border: 2px dashed #002244; display: none; background: #f0f4f8; border-radius: 5px; text-align: left; animation: fadeIn 0.3s; }
+        .popover img { margin-top: 10px; border-radius: 4px; max-width: 180px; display: block; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -105,41 +27,42 @@ html<!DOCTYPE html>
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
-    <p>Escribe tu frase en inglés o usa el ejemplo predeterminado:</p>
+    <p>Escribe cualquier frase en <strong>Español</strong> o <strong>Inglés</strong>:</p>
     
-    <!-- Texto precargado para que hagas tu simulación en clase -->
-    <textarea id="textInput">The beautiful garden has flowers</textarea>
+    <textarea id="textInput">el sol esta radiante</textarea>
     <br>
     
     <button onclick="prepareText()">1. Cargar Texto</button>
     <button onclick="speakText()">2. Escuchar y Seguir</button>
     <button onclick="pauseSpeech()">Pausar</button>
 
-    <!-- Aquí se mostrarán las palabras para hacerles clic -->
     <div id="textDisplay" class="text-display">Presiona "1. Cargar Texto" para iniciar.</div>
-    
-    <!-- Cuadro de ayuda visual flotante -->
     <div id="popover" class="popover"></div>
 </div>
 
 <script>
-    // Variables globales para controlar la API de Voz del navegador web
     let synthesis = window.speechSynthesis;
     let utterance;
     let wordsArray = [];
+    let detectedLang = 'es-ES';
 
-    // PASO 1: Separa el texto en palabras individuales e interactivas
+    // Detecta automáticamente si el texto principal es principalmente inglés o español
+    function detectLanguage(text) {
+        const spanishWords = ['el', 'la', 'los', 'esta', 'es', 'un', 'una', 'del', 'al', 'sol', 'con', 'y'];
+        const words = text.toLowerCase().split(/\s+/);
+        const hasSpanish = words.some(w => spanishWords.includes(w));
+        return hasSpanish ? 'es-ES' : 'en-US';
+    }
+
     function prepareText() {
         const rawText = document.getElementById('textInput').value;
         const displayContainer = document.getElementById('textDisplay');
-        displayContainer.innerHTML = ''; // Limpiar contenedor
+        document.getElementById('popover').style.display = 'none';
+        displayContainer.innerHTML = '';
         
-        if (!rawText.trim()) {
-            displayContainer.innerText = "Por favor escribe un texto primero.";
-            return;
-        }
+        if (!rawText.trim()) return;
 
-        // Divide el texto usando los espacios en blanco
+        detectedLang = detectLanguage(rawText);
         wordsArray = rawText.trim().split(/\s+/);
         
         wordsArray.forEach((word, index) => {
@@ -147,16 +70,12 @@ html<!DOCTYPE html>
             span.innerText = word;
             span.className = 'word';
             span.id = 'word-' + index;
-            
-            // Evento interactivo: pausar y ver traducción si se hace clic
-            span.onclick = function() { showWordDetails(word); };
+            span.onclick = function() { processWordClick(word); };
             displayContainer.appendChild(span);
         });
     }
 
-    // PASO 2: Reproduce el audio y activa el resaltado dinámico (Highlight)
     function speakText() {
-        // Si ya estaba pausado, simplemente continúa la lectura
         if (synthesis.speaking && synthesis.paused) {
             synthesis.resume();
             return;
@@ -165,34 +84,23 @@ html<!DOCTYPE html>
         const rawText = document.getElementById('textInput').value;
         if (!rawText.trim()) return;
 
-        // Si no se ha cargado el texto visualmente, lo genera automáticamente
-        if (document.querySelectorAll('.word').length === 0) {
-            prepareText();
-        }
+        if (document.querySelectorAll('.word').length === 0) prepareText();
 
         utterance = new SpeechSynthesisUtterance(rawText);
-        utterance.lang = 'en-US'; // Configurado en idioma Inglés Americano
+        utterance.lang = detectedLang;
 
-        // El evento "onboundary" detecta exactamente qué palabra está procesando el software de audio
         utterance.onboundary = function(event) {
             if (event.name === 'word') {
-                // Remueve el resaltado de la palabra anterior
                 document.querySelectorAll('.word').forEach(el => el.classList.remove('highlight'));
-                
-                // Calcula la posición y el índice real de la palabra actual
                 let textUpToBoundary = event.target.text.substr(0, event.charIndex);
                 let wordIndex = textUpToBoundary.trim().split(/\s+/).length;
                 if(event.charIndex === 0) wordIndex = 0;
 
-                // Aplica el efecto visual amarillo a la palabra sonando
                 let currentSpan = document.getElementById('word-' + wordIndex);
-                if (currentSpan) {
-                    currentSpan.classList.add('highlight');
-                }
+                if (currentSpan) currentSpan.classList.add('highlight');
             }
         };
 
-        // Quita los colores cuando el audio llegue a su fin
         utterance.onend = function() {
             document.querySelectorAll('.word').forEach(el => el.classList.remove('highlight'));
         };
@@ -200,48 +108,63 @@ html<!DOCTYPE html>
         synthesis.speak(utterance);
     }
 
-    // Función para pausar el reproductor
     function pauseSpeech() {
-        if (synthesis.speaking && !synthesis.paused) {
-            synthesis.pause();
-        }
+        if (synthesis.speaking && !synthesis.paused) synthesis.pause();
     }
 
-    // PASO 3: Diccionario local dinámico y demostración visual con gráficos
-    function showWordDetails(word) {
-        pauseSpeech(); // Detiene la voz general inmediatamente
+    // PROCESAMIENTO DINÁMICO: Traducción automática e imágenes en tiempo real
+    async function processWordClick(word) {
+        pauseSpeech();
         
-        // Limpia signos de puntuación de la palabra para buscarla con precisión
-        let cleanWord = word.toLowerCase().replace(/[^a-z]/g, "");
-        
+        // Limpiar la palabra de signos de puntuación
+        let cleanWord = word.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
+        if (!cleanWord) return;
+
         let popover = document.getElementById('popover');
         popover.style.display = 'block';
-        
-        // Base de datos de simulación interactiva con imágenes reales de Unsplash
-        let dictionary = {
-            "beautiful": { trans: "Hermoso / Bella", img: "https://unsplash.com" },
-            "garden": { trans: "Jardín", img: "https://unsplash.com" },
-            "flowers": { trans: "Flores", img: "https://unsplash.com" }
-        };
+        popover.innerHTML = `<strong>⏳ Procesando palabra "${cleanWord}"...</strong>`;
 
-        if (dictionary[cleanWord]) {
+        // Determinar dirección de traducción
+        let fromLang = detectedLang === 'es-ES' ? 'es' : 'en';
+        let toLang = detectedLang === 'es-ES' ? 'en' : 'es';
+
+        try {
+            // 1. Llamada a API de traducción gratuita (MyMemory)
+            const responseTranslation = await fetch(`https://translated.net{cleanWord}&langpair=${fromLang}|${toLang}`);
+            const dataTranslation = await responseTranslation.json();
+            let translation = dataTranslation.responseData.translatedText;
+
+            // 2. Llamada a API de imágenes de Wikipedia (Wikimedia) para buscar gráficos reales
+            const queryImg = fromLang === 'en' ? cleanWord : translation.toLowerCase();
+            const responseImage = await fetch(`https://wikipedia.org{queryImg}&origin=*`);
+            const dataImage = await responseImage.json();
+            
+            let imgHtml = '';
+            const pages = dataImage.query.pages;
+            const pageId = Object.keys(pages)[0];
+            
+            if (pageId !== "-1" && pages[pageId].thumbnail) {
+                imgHtml = `<img src="${pages[pageId].thumbnail.source}" alt="${cleanWord}">`;
+            } else {
+                imgHtml = `<br><em style="color:#777; font-size:12px;">(No hay gráfico disponible para esta palabra en la base de datos pública)</em>`;
+            }
+
+            // 3. Imprimir el resultado en la pantalla de forma automática
             popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${cleanWord} <br>
-                <strong>📝 Traducción al español:</strong> ${dictionary[cleanWord].trans} <br>
-                <strong>📸 Ejemplo Gráfico:</strong> <br>
-                <img src="${dictionary[cleanWord].img}" alt="${cleanWord}">
+                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
+                <strong>📝 Traducción al ${toLang === 'en' ? 'Inglés' : 'Español'}:</strong> <span style="color:#002244; font-weight:bold;">${translation}</span> <br>
+                <strong>📸 Ejemplo Gráfico:</strong>
+                ${imgHtml}
             `;
-        } else {
-            popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${cleanWord} <br>
-                <em>(Para la demostración de la clase, haz clic en "beautiful", "garden" o "flowers" para desplegar la traducción y el gráfico de ejemplo).</em>
-            `;
+
+            // 4. Pronunciar la palabra seleccionada en su idioma original
+            let wordUtterance = new SpeechSynthesisUtterance(cleanWord);
+            wordUtterance.lang = detectedLang;
+            synthesis.speak(wordUtterance);
+
+        } catch (error) {
+            popover.innerHTML = `<strong>❌ Error:</strong> No se pudo conectar con el traductor en este momento.`;
         }
-        
-        // Pronunciar individualmente sólo la palabra en la que se hizo clic
-        let wordUtterance = new SpeechSynthesisUtterance(cleanWord);
-        wordUtterance.lang = 'en-US';
-        synthesis.speak(wordUtterance);
     }
 </script>
 
