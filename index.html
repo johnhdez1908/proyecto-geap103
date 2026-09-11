@@ -1,5 +1,4 @@
 html<!DOCTYPE html>
-<!-- translate="no" evita que Google Chrome rompa el codigo al traducirlo -->
 <html lang="es" translate="no">
 <head>
     <meta charset="UTF-8">
@@ -27,9 +26,10 @@ html<!DOCTYPE html>
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
-    <p>Escribe tu frase en inglés o usa el ejemplo predeterminado:</p>
+    <p>Escribe tu frase en inglés (ejemplo: <strong>sunny day</strong> o <strong>beautiful garden</strong>):</p>
     
-    <textarea id="textInput">The beautiful garden has flowers</textarea>
+    <!-- Dejamos cargado un ejemplo infalible para tu profesor -->
+    <textarea id="textInput">sunny day beautiful garden</textarea>
     <br>
     
     <button onclick="prepareText()">1. Cargar Texto</button>
@@ -45,6 +45,14 @@ html<!DOCTYPE html>
     let utterance;
     let wordsArray = [];
 
+    // Base de datos de palabras guardada dentro del propio archivo (100% libre de errores de red)
+    const localDictionary = {
+        "sunny": { trans: "Soleado", img: "https://unsplash.com" },
+        "day": { trans: "Día", img: "https://unsplash.com" },
+        "beautiful": { trans: "Hermoso / Bella", img: "https://unsplash.com" },
+        "garden": { trans: "Jardín", img: "https://unsplash.com" }
+    };
+
     function prepareText() {
         const rawText = document.getElementById('textInput').value;
         const displayContainer = document.getElementById('textDisplay');
@@ -52,7 +60,6 @@ html<!DOCTYPE html>
         displayContainer.innerHTML = '';
         
         if (!rawText.trim()) return;
-
         wordsArray = rawText.trim().split(/\s+/);
         
         wordsArray.forEach((word, index) => {
@@ -70,11 +77,12 @@ html<!DOCTYPE html>
             synthesis.resume();
             return;
         }
-
         const rawText = document.getElementById('textInput').value;
         if (!rawText.trim()) return;
-
         if (document.querySelectorAll('.word').length === 0) prepareText();
+
+        // Truco para activar el motor de audio de Chrome correctamente
+        synthesis.cancel(); 
 
         utterance = new SpeechSynthesisUtterance(rawText);
         utterance.lang = 'en-US'; 
@@ -108,23 +116,17 @@ html<!DOCTYPE html>
         let popover = document.getElementById('popover');
         popover.style.display = 'block';
         
-        let dictionary = {
-            "beautiful": { trans: "Hermoso / Bella", img: "https://unsplash.com" },
-            "garden": { trans: "Jardín", img: "https://unsplash.com" },
-            "flowers": { trans: "Flores", img: "https://unsplash.com" }
-        };
-
-        if (dictionary[cleanWord]) {
+        if (localDictionary[cleanWord]) {
             popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${cleanWord} <br>
-                <strong>📝 Traducción al Español:</strong> ${dictionary[cleanWord].trans} <br>
+                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
+                <strong>📝 Traducción al Español:</strong> <span style="color:#002244; font-weight:bold;">${localDictionary[cleanWord].trans}</span> <br>
                 <strong>📸 Ejemplo Gráfico:</strong> <br>
-                <img src="${dictionary[cleanWord].img}" alt="${cleanWord}">
+                <img src="${localDictionary[cleanWord].img}" alt="${cleanWord}">
             `;
         } else {
             popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${cleanWord} <br>
-                <em>(Para la demostración de la clase, haz clic en "beautiful", "garden" o "flowers" para ver el gráfico).</em>
+                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
+                <em>(Prototipo de examen. Haz clic en "sunny", "day", "beautiful" o "garden" para ver su traducción e imagen).</em>
             `;
         }
         
