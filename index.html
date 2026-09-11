@@ -1,11 +1,10 @@
 html<!DOCTYPE html>
-<!-- translate="no" es una regla estricta para que Chrome no rompa los botones -->
 <html lang="en" translate="no" class="notranslate">
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAP-103-OLA: Analizador Gramatical por Colores</title>
+    <title>GEAP-103-OLA: Analizador Universal Pro</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f7f6; text-align: center; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
@@ -18,11 +17,13 @@ html<!DOCTYPE html>
         .text-display { font-size: 24px; line-height: 2; margin-top: 20px; text-align: left; padding: 15px; background: #fafafa; border-radius: 4px; border-left: 4px solid #002244; }
         .word { display: inline-block; margin-right: 8px; cursor: pointer; border-radius: 4px; padding: 2px 6px; font-weight: 500; color: white; transition: 0.2s; border: 2px solid transparent; }
         
+        /* Colores fijos de las categorias gramaticales */
         .articulo { background-color: #2196f3 !important; }  
         .adjetivo { background-color: #4caf50 !important; }  
         .sustantivo { background-color: #ff9800 !important; } 
         .verbo { background-color: #f44336 !important; }      
-        .desconocido { background-color: #9e9e9e !important; } 
+        .pronombre { background-color: #9c27b0 !important; }
+        .desconocido { background-color: #78909c !important; } 
 
         .highlight { 
             border: 2px solid #000000 !important;
@@ -30,11 +31,10 @@ html<!DOCTYPE html>
             transform: scale(1.1);
         }
         
-        .legend { display: flex; justify-content: space-around; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .legend { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 
-        .sentence-translation { margin-top: 15px; padding: 12px; background-color: #e3f2fd; border-left: 4px solid #2196f3; text-align: left; border-radius: 4px; font-size: 16px; display: none; }
         .popover { margin-top: 20px; padding: 15px; border: 2px dashed #ffc72c; display: none; background: #fffde7; border-radius: 5px; text-align: left; }
         .popover img { margin-top: 10px; border-radius: 4px; max-width: 150px; display: block; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); }
         .grammar-tag { display: inline-block; background-color: #002244; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-top: 4px; margin-bottom: 4px; }
@@ -46,8 +46,8 @@ html<!DOCTYPE html>
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
-    <p>Frase en inglés para el análisis por colores:</p>
-    <textarea id="textInput">The beautiful garden has flowers</textarea>
+    <p>Escribe <strong>CUALQUIER</strong> oración en inglés o español:</p>
+    <textarea id="textInput">The smart student uses a fast computer</textarea>
     <br>
     
     <button onclick="prepareText()">1. Cargar Texto</button>
@@ -59,11 +59,10 @@ html<!DOCTYPE html>
         <div class="legend-item"><span class="dot" style="background:#4caf50;"></span> Adjetivo</div>
         <div class="legend-item"><span class="dot" style="background:#ff9800;"></span> Sustantivo</div>
         <div class="legend-item"><span class="dot" style="background:#f44336;"></span> Verbo</div>
+        <div class="legend-item"><span class="dot" style="background:#9c27b0;"></span> Pronombre</div>
     </div>
 
     <div id="textDisplay" class="text-display">Presiona "1. Cargar Texto" para iniciar.</div>
-    
-    <div id="sentenceTranslation" class="sentence-translation"></div>
     <div id="popover" class="popover"></div>
 </div>
 
@@ -71,24 +70,36 @@ html<!DOCTYPE html>
     let synthesis = window.speechSynthesis;
     let utterance;
     let wordsArray = [];
+    let detectedLang = 'en-US';
 
-    const localDictionary = {
-        "the": { trans: "El / La / Los / Las", type: "Artículo", className: "articulo", desc: "Acompaña al sustantivo para indicar su género y número.", img: "https://unsplash.com" },
-        "beautiful": { trans: "Hermoso / Bella", type: "Adjetivo", className: "adjetivo", desc: "Califica o da una cualidad al sustantivo.", img: "https://unsplash.com" },
-        "garden": { trans: "Jardín", type: "Sustantivo (o nombre)", className: "sustantivo", desc: "Nombra a personas, animales, cosas, lugares o ideas.", img: "https://unsplash.com" },
-        "has": { trans: "Tiene (del verbo tener)", type: "Verbo", className: "verbo", desc: "Expresa la acción, el estado o el proceso que realiza el sujeto.", img: "https://unsplash.com" },
-        "flowers": { trans: "Flores", type: "Sustantivo (o nombre)", className: "sustantivo", desc: "Nombra a personas, animales, cosas, lugares o ideas.", img: "https://unsplash.com" }
+    const grammarRules = {
+        articles: ['the', 'a', 'an', 'some', 'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas'],
+        pronouns: ['i', 'you', 'he', 'she', 'it', 'we', 'they', 'this', 'that', 'yo', 'tu', 'el', 'ella', 'nosotros', 'ellos', 'esto', 'eso'],
+        verbs: ['is', 'are', 'am', 'has', 'have', 'run', 'runs', 'use', 'uses', 'like', 'likes', 'es', 'esta', 'son', 'tiene', 'tienen', 'corre', 'usa', 'usan', 'gusta'],
+        adjectives: ['beautiful', 'smart', 'fast', 'sunny', 'good', 'bad', 'red', 'blue', 'radiant', 'bright', 'hermoso', 'bella', 'inteligente', 'rapido', 'soleado', 'bueno', 'malo', 'rojo', 'azul', 'radiante']
     };
+
+    function getGrammarCategory(word) {
+        let w = word.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
+        if (grammarRules.articles.includes(w)) return { type: "Artículo", className: "articulo", desc: "Acompaña al sustantivo para indicar su género y número." };
+        if (grammarRules.pronouns.includes(w)) return { type: "Pronombre", className: "pronombre", desc: "Sustituye al sustantivo para evitar repeticiones." };
+        if (grammarRules.verbs.includes(w)) return { type: "Verbo", className: "verbo", desc: "Expresa la acción, el estado o el proceso que realiza el sujeto." };
+        if (grammarRules.adjectives.includes(w)) return { type: "Adjetivo", className: "adjetivo", desc: "Califica o da una cualidad al sustantivo." };
+        return { type: "Sustantivo", className: "sustantivo", desc: "Nombra a personas, animales, cosas, lugares o ideas." };
+    }
 
     function prepareText() {
         const rawText = document.getElementById('textInput').value;
         const displayContainer = document.getElementById('textDisplay');
-        const sentenceBox = document.getElementById('sentenceTranslation');
-        
         document.getElementById('popover').style.display = 'none';
         displayContainer.innerHTML = '';
         
         if (!rawText.trim()) return;
+
+        const spanishIndicators = ['el', 'la', 'los', 'sol', 'esta', 'un', 'casa', 'perro'];
+        const sampleWords = rawText.toLowerCase().split(/\s+/);
+        detectedLang = sampleWords.some(w => spanishIndicators.includes(w)) ? 'es-ES' : 'en-US';
+
         wordsArray = rawText.trim().split(/\s+/);
         
         wordsArray.forEach((word, index) => {
@@ -96,19 +107,12 @@ html<!DOCTYPE html>
             span.innerText = word;
             span.id = 'word-' + index;
             
-            let clean = word.toLowerCase().replace(/[^a-z]/g, "");
-            if (localDictionary[clean]) {
-                span.className = 'word ' + localDictionary[clean].className;
-            } else {
-                span.className = 'word desconocido';
-            }
+            let grammar = getGrammarCategory(word);
+            span.className = 'word ' + grammar.className;
             
             span.onclick = function() { showWordDetails(word); };
             displayContainer.appendChild(span);
         });
-
-        sentenceBox.style.display = 'block';
-        sentenceBox.innerHTML = `<strong>🔮 Traducción de la oración:</strong> El hermoso jardín tiene flores.`;
     }
 
     function speakText() {
@@ -122,7 +126,7 @@ html<!DOCTYPE html>
 
         synthesis.cancel(); 
         utterance = new SpeechSynthesisUtterance(rawText);
-        utterance.lang = 'en-US'; 
+        utterance.lang = detectedLang; 
 
         utterance.onboundary = function(event) {
             if (event.name === 'word') {
@@ -146,35 +150,34 @@ html<!DOCTYPE html>
         if (synthesis.speaking && !synthesis.paused) synthesis.pause();
     }
 
-    // Al hacer clic, la aplicacion habla en ingles la palabra seleccionada
-    function showWordDetails(word) {
+    async function showWordDetails(word) {
         pauseSpeech();
-        let cleanWord = word.toLowerCase().replace(/[^a-z]/g, "");
+        let cleanWord = word.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
         let popover = document.getElementById('popover');
         popover.style.display = 'block';
-        
-        if (localDictionary[cleanWord]) {
-            let data = localDictionary[cleanWord];
+        popover.innerHTML = `<strong>⏳ Buscando "${cleanWord}"...</strong>`;
+
+        let grammar = getGrammarCategory(cleanWord);
+        let fromLang = detectedLang === 'es-ES' ? 'es' : 'en';
+        let toLang = detectedLang === 'es-ES' ? 'en' : 'es';
+
+        try {
+            const resTrans = await fetch(`https://translated.net{cleanWord}&langpair=${fromLang}|${toLang}`);
+            const dataTrans = await resTrans.json();
+            let translation = dataTrans.responseData.translatedText;
+
+            let imgQuery = fromLang === 'en' ? cleanWord : translation.toLowerCase();
+            const resImg = await fetch(`https://wikipedia.org{imgQuery}&origin=*`);
+            const dataImg = await resImg.json();
+            
+            let imgHtml = '';
+            const pages = dataImg.query.pages;
+            const pageId = Object.keys(pages);
+            if (pageId !== "-1" && pages[pageId].thumbnail) {
+                imgHtml = `<img src="${pages[pageId].thumbnail.source}" alt="${cleanWord}">`;
+            } else {
+                imgHtml = `<br><small style="color:#777;">(Sin gráfico disponible para este término)</small>`;
+            }
+
             popover.innerHTML = `
                 <strong>📌 Palabra:</strong> ${word} <br>
-                <strong>📝 Traducción:</strong> <span style="color:#002244; font-weight:bold;">${data.trans}</span> <br>
-                <strong>🏷️ Categoría Gramatical:</strong> <span class="grammar-tag">${data.type}</span> <br>
-                <small style="color:#555; display:block; margin-bottom:5px;"><em>${data.desc}</em></small>
-                <strong>📸 Ejemplo Gráfico:</strong>
-                <img src="${data.img}" alt="${cleanWord}">
-            `;
-        } else {
-            popover.innerHTML = `
-                <strong>📌 Palabra seleccionada:</strong> ${word} <br>
-                <em>(Haz clic en "The", "beautiful", "garden", "has" o "flowers").</em>
-            `;
-        }
-        
-        let wordUtterance = new SpeechSynthesisUtterance(cleanWord);
-        wordUtterance.lang = 'en-US';
-        synthesis.speak(wordUtterance);
-    }
-</script>
-
-</body>
-</html>
