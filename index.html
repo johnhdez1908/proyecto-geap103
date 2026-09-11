@@ -4,20 +4,24 @@ html<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAP-103-OLA: Analizador Universal Pro</title>
+    <title>GEAP-103-OLA: Analizador Universal Con Borrado</title>
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f7f6; text-align: center; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
         h1 { color: #002244; font-size: 24px; }
         .subtitle { color: #555; font-size: 14px; margin-bottom: 20px; }
         textarea { width: 100%; height: 60px; padding: 10px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; resize: none; box-sizing: border-box; }
+        
+        /* Botones decorados */
         button { background-color: #ffc72c; color: #002244; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 4px; margin: 5px; }
         button:hover { background-color: #e0ae26; }
+        .btn-clear { background-color: #d32f2f; color: white; } /* Botón borrar en rojo */
+        .btn-clear:hover { background-color: #b71c1c; }
         
         .text-display { font-size: 24px; line-height: 2; margin-top: 20px; text-align: left; padding: 15px; background: #fafafa; border-radius: 4px; border-left: 4px solid #002244; }
         .word { display: inline-block; margin-right: 8px; cursor: pointer; border-radius: 4px; padding: 2px 6px; font-weight: 500; color: white; transition: 0.2s; border: 2px solid transparent; }
         
-        /* Colores fijos de las categorias gramaticales */
+        /* Colores de las categorias */
         .articulo { background-color: #2196f3 !important; }  
         .adjetivo { background-color: #4caf50 !important; }  
         .sustantivo { background-color: #ff9800 !important; } 
@@ -25,16 +29,10 @@ html<!DOCTYPE html>
         .pronombre { background-color: #9c27b0 !important; }
         .desconocido { background-color: #78909c !important; } 
 
-        .highlight { 
-            border: 2px solid #000000 !important;
-            box-shadow: 0px 0px 8px rgba(0,0,0,0.5);
-            transform: scale(1.1);
-        }
-        
+        .highlight { border: 2px solid #000000 !important; box-shadow: 0px 0px 8px rgba(0,0,0,0.5); transform: scale(1.1); }
         .legend { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; margin-top: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-
         .popover { margin-top: 20px; padding: 15px; border: 2px dashed #ffc72c; display: none; background: #fffde7; border-radius: 5px; text-align: left; }
         .popover img { margin-top: 10px; border-radius: 4px; max-width: 150px; display: block; box-shadow: 0px 2px 5px rgba(0,0,0,0.1); }
         .grammar-tag { display: inline-block; background-color: #002244; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-top: 4px; margin-bottom: 4px; }
@@ -46,13 +44,14 @@ html<!DOCTYPE html>
     <h1>Language Learning App Prototype</h1>
     <div class="subtitle">Comp. Applic. 1: PC Essentials (GEAP-103-OLA)</div>
     
-    <p>Escribe <strong>CUALQUIER</strong> oración en inglés o español:</p>
+    <p>Escribe cualquier frase o haz clic en "Borrar" para ingresar una nueva:</p>
     <textarea id="textInput">The smart student uses a fast computer</textarea>
     <br>
     
     <button onclick="prepareText()">1. Cargar Texto</button>
     <button onclick="speakText()">2. Escuchar y Seguir</button>
     <button onclick="pauseSpeech()">Pausar</button>
+    <button onclick="clearAll()" class="btn-clear">Borrar Texto</button>
 
     <div class="legend">
         <div class="legend-item"><span class="dot" style="background:#2196f3;"></span> Artículo</div>
@@ -94,9 +93,12 @@ html<!DOCTYPE html>
         document.getElementById('popover').style.display = 'none';
         displayContainer.innerHTML = '';
         
-        if (!rawText.trim()) return;
+        if (!rawText.trim()) {
+            displayContainer.innerText = 'Por favor, escribe una oración primero.';
+            return;
+        }
 
-        const spanishIndicators = ['el', 'la', 'los', 'sol', 'esta', 'un', 'casa', 'perro'];
+        const spanishIndicators = ['el', 'la', 'los', 'sol', 'esta', 'un', 'casa', 'perro', 'radiante'];
         const sampleWords = rawText.toLowerCase().split(/\s+/);
         detectedLang = sampleWords.some(w => spanishIndicators.includes(w)) ? 'es-ES' : 'en-US';
 
@@ -150,6 +152,14 @@ html<!DOCTYPE html>
         if (synthesis.speaking && !synthesis.paused) synthesis.pause();
     }
 
+    // Función nueva para limpiar la pantalla por completo
+    function clearAll() {
+        synthesis.cancel();
+        document.getElementById('textInput').value = '';
+        document.getElementById('textDisplay').innerHTML = 'Presiona "1. Cargar Texto" para iniciar.';
+        document.getElementById('popover').style.display = 'none';
+    }
+
     async function showWordDetails(word) {
         pauseSpeech();
         let cleanWord = word.toLowerCase().replace(/[^a-záéíóúñ]/g, "");
@@ -167,17 +177,3 @@ html<!DOCTYPE html>
             let translation = dataTrans.responseData.translatedText;
 
             let imgQuery = fromLang === 'en' ? cleanWord : translation.toLowerCase();
-            const resImg = await fetch(`https://wikipedia.org{imgQuery}&origin=*`);
-            const dataImg = await resImg.json();
-            
-            let imgHtml = '';
-            const pages = dataImg.query.pages;
-            const pageId = Object.keys(pages);
-            if (pageId !== "-1" && pages[pageId].thumbnail) {
-                imgHtml = `<img src="${pages[pageId].thumbnail.source}" alt="${cleanWord}">`;
-            } else {
-                imgHtml = `<br><small style="color:#777;">(Sin gráfico disponible para este término)</small>`;
-            }
-
-            popover.innerHTML = `
-                <strong>📌 Palabra:</strong> ${word} <br>
